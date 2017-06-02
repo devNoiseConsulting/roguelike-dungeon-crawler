@@ -15,9 +15,7 @@ var DungeonRow = React.createClass({
       }
         return (
             <span>
-              {row.map(function(cell, i) {
-                  return (<DungeonCell cell={cell} key={i} rowid={i} />);
-              }, this)}
+              {row.join('')}
               <br />
             </span>
         )
