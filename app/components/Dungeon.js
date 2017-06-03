@@ -15,7 +15,7 @@ var Dungeon = React.createClass({
       }
         return (
             <div>
-              <pre>Dungeon: Game Board goes here.<br />
+              <pre className="dungeon">Dungeon: Game Board goes here.<br />
               {dungeon.map(function(row, i) {
                   return (<DungeonRow row={row} key={i} rowid={i} />);
               }, this)}
