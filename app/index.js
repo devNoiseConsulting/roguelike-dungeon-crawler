@@ -1,3 +1,4 @@
+import Bootstrap from 'bootstrap/dist/css/bootstrap.css';
 import './index.css';
 
 var React = require('react');

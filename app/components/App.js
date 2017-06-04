@@ -1,5 +1,10 @@
 var React = require('react');
 var Dungeon = require('./Dungeon');
+var PlayerInfo = require('./PlayerInfo');
+
+var Grid = require('react-bootstrap').Grid;
+var Row = require('react-bootstrap').Row;
+var Col = require('react-bootstrap').Col;
 
 var App = React.createClass({
   getInitialState: function() {
@@ -11,9 +16,10 @@ var App = React.createClass({
         y: 25,
         level: 1,
         xp: 0,
+        alive: true,
         health: 100,
         armor: 0,
-        attack: 1,
+        attackLevel: 1,
         toString: function() {
           return 'P'
         }
@@ -32,7 +38,7 @@ var App = React.createClass({
         'x': -1,
         'y': 0
       },
-      'W': {
+      'k': {
         'x': -1,
         'y': 0
       },
@@ -44,7 +50,7 @@ var App = React.createClass({
         'x': 0,
         'y': -1
       },
-      'A': {
+      'h': {
         'x': 0,
         'y': -1
       },
@@ -56,7 +62,7 @@ var App = React.createClass({
         'x': 1,
         'y': 0
       },
-      'S': {
+      'j': {
         'x': 1,
         'y': 0
       },
@@ -68,7 +74,7 @@ var App = React.createClass({
         'x': 0,
         'y': 1
       },
-      'D': {
+      'l': {
         'x': 0,
         'y': 1
       },
@@ -88,9 +94,33 @@ var App = React.createClass({
       player.y = y;
 
       return player;
-    }
+    };
 
-    if (keys.hasOwnProperty(e.key)) {
+    let attackAmount = function(level) {
+      let attacks = new Array(level).fill(0);
+      return attacks.map(v => Math.floor(Math.random() * 4)).reduce((acc, v) => acc + 4, 0) + 4;
+    };
+
+    let monsterFight = function(x, y) {
+      let monsterDie = false;
+      let monster = dungeon[x][y];
+      let monsterAttack = attackAmount(monster.attackLevel);
+      let playerAttack = attackAmount(player.attackLevel);
+      monster.health -= playerAttack;
+      player.health -= monsterAttack;
+      if (monster.health <= 0) {
+        monsterDie = true;
+        player.attackLevel = (player.attackLevel < monster.attackLevel) ? monster.attackLevel : player.attackLevel;
+        player.xp += monster.attackLevel * 5;
+      }
+      if (player.health <= 0) {
+        player.alive = false;
+      }
+      dungeon[x][y] = monster;
+      return monsterDie;
+    };
+
+    if (keys.hasOwnProperty(e.key) && player.alive) {
       let newX = player.x + keys[e.key].x;
       let newY = player.y + keys[e.key].y;
       //console.log(newX, newY);
@@ -103,6 +133,19 @@ var App = React.createClass({
         // If wall do nothing.
         // If treasure, pick up and heal
         // If monter, fight
+        switch (cell.type) {
+          case 'treasure':
+            player.health += cell.health;
+            player = movePlayer(newX, newY);
+            break;
+          case 'monster':
+            // fight
+            console.log(cell.health);
+            if (monsterFight(newX, newY)) {
+              player = movePlayer(newX, newY);
+            }
+            break;
+        }
       }
       this.setState({dungeon: dungeon, player: player});
     }
@@ -123,6 +166,7 @@ var App = React.createClass({
     dungeon = this.initializePlayer(dungeon);
     dungeon = this.initializeTreasure(dungeon);
     dungeon = this.initializeMonsters(dungeon);
+    // Setup dungeon stair to enter the next level.
 
     this.setState({dungeon: dungeon});
   },
@@ -133,9 +177,11 @@ var App = React.createClass({
   },
 
   initializeTreasure: function(dungeon) {
-    let Treasure = function() {
+    let Treasure = function(x, y, level) {
       this.type = 'treasure';
-      this.health = 20;
+      this.x = x;
+      this.y = y;
+      this.health = level * 20;
       this.toString = function() {
         return '+';
       }
@@ -147,40 +193,46 @@ var App = React.createClass({
       let y = Math.floor(Math.random() * this.state.dungeonSize);
       //console.log("Treasure at ", x, y);
       if (dungeon[x][y] == ' ') {
-        dungeon[x][y] = new Treasure;
+        dungeon[x][y] = new Treasure(x, y, this.state.dungeonLevel);
+      } else {
+        i--;
       }
     }
 
     return dungeon;
   },
 
-  initializeMonsters: function(dungeon) {
-    let Monster = function() {
+  initializeMonsters : function(dungeon) {
+    let Monster = function(x, y, level) {
       this.type = 'monster';
-      this.health = 20;
-      this.attack = 2;
+      this.x = x;
+      this.y = y;
+      this.health = (level + 1) * 10;
+      this.attackLevel = level + 1;
       this.toString = function() {
         return 'M';
       }
     };
 
-    let treasureLimit = Math.sqrt(this.state.dungeonSize / 2);
-    for (let i = 0; i < treasureLimit; i++) {
+    let monsterLimit = Math.sqrt(this.state.dungeonSize / 2);
+    for (let i = 0; i < monsterLimit; i++) {
       let x = Math.floor(Math.random() * this.state.dungeonSize);
       let y = Math.floor(Math.random() * this.state.dungeonSize);
       //console.log("Monster at ", x, y);
       if (dungeon[x][y] == ' ') {
-        dungeon[x][y] = new Monster;
+        dungeon[x][y] = new Monster(x, y, this.state.dungeonLevel);
       }
     }
 
     return dungeon;
   },
 
-  initializeWalls: function(dungeon) {
+  initializeWalls : function(dungeon) {
     let dungeonSize = this.state.dungeonSize;
-    let Wall = function() {
+    let Wall = function(x, y) {
       this.type = 'wall';
+      this.x = x;
+      this.y = y;
       this.toString = function() {
         return '#';
       }
@@ -189,8 +241,8 @@ var App = React.createClass({
     for (let i = 0; i < dungeonSize; i += 10) {
       for (let j = 0; j < dungeonSize; j++) {
         //console.log(i, j);
-        dungeon[j][i] = new Wall();
-        dungeon[i][j] = new Wall();
+        dungeon[j][i] = new Wall(i, j);
+        dungeon[i][j] = new Wall(i, j);
       }
     }
 
@@ -205,13 +257,21 @@ var App = React.createClass({
     return dungeon;
   },
 
-  render: function() {
+  render : function() {
+    let player = this.state.player;
+    let dungeon = this.state.dungeon;
     return (
-      <div>
-        <Dungeon dungeon={this.state.dungeon}/>
-        <p>X: {this.state.xLocation}, Y: {this.state.yLocation}</p>
-      </div>
-    )
+      <Grid>
+        <Row>
+          <Col xs={12} md={6}>
+            <Dungeon dungeon={dungeon} player={player}/>
+          </Col>
+          <Col xs={12} md={6}>
+            <PlayerInfo player={player}/>
+          </Col>
+        </Row>
+      </Grid>
+    );
   }
 
 });

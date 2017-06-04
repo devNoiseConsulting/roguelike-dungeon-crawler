@@ -4,7 +4,9 @@
   "description": "An implementation of freeCodeCamp's Roguelike Dungeon Crawler Game",
   "main": "index.js",
   "dependencies": {
+    "bootstrap": "^3.3.7",
     "react": "^15.5.4",
+    "react-bootstrap": "^0.31.0",
     "react-dom": "^15.5.4"
   },
   "devDependencies": {
@@ -12,8 +14,10 @@
     "babel-loader": "^7.0.0",
     "babel-preset-react": "^6.24.1",
     "css-loader": "^0.28.4",
+    "file-loader": "^0.11.1",
     "html-webpack-plugin": "^2.28.0",
     "style-loader": "^0.18.1",
+    "url-loader": "^0.5.8",
     "webpack": "^2.6.1",
     "webpack-dev-server": "^2.4.5"
   },
