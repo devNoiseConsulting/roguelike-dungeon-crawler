@@ -7,11 +7,14 @@ var Grid = require('react-bootstrap').Grid;
 var Row = require('react-bootstrap').Row;
 var Col = require('react-bootstrap').Col;
 
+var Button = require('react-bootstrap').Button;
+
 var App = React.createClass({
   getInitialState: function() {
     return {
       dungeonSize: 41,
       dungeonLevel: 0,
+      dungeonWon: false,
       dungeons: [],
       player: {
         x: 25,
@@ -23,7 +26,9 @@ var App = React.createClass({
         armor: 0,
         attackLevel: 1,
         toString: function() {
-          return 'P'
+          return (this.alive)
+            ? 'P'
+            : 'd';
         }
       }
     };
@@ -88,6 +93,7 @@ var App = React.createClass({
       }
     };
     let dungeon = this.state.dungeon;
+    let dungeonWon = this.state.dungeonWon;
     let player = this.state.player;
 
     let movePlayer = function(x, y) {
@@ -103,7 +109,7 @@ var App = React.createClass({
     let addPlayerExperience = function(player, attackLevel) {
       player.xp += attackLevel * 5;
       nextLevel = Math.pow(player.level + 1, 2) * 10;
-      if (player.xp == nextLevel) {
+      if (player.xp >= nextLevel) {
         player.level++;
         player.health = (player.health < 100)
           ? 100
@@ -131,9 +137,13 @@ var App = React.createClass({
           ? monster.attackLevel
           : player.attackLevel;
         player = addPlayerExperience(player, monster.attackLevel);
+        if (monster.kind == 'B') {
+          dungeonWon = true;
+        }
       }
       if (player.health <= 0) {
         player.alive = false;
+        monsterDie = false;
       }
       dungeon[x][y] = monster;
       return monsterDie;
@@ -155,6 +165,9 @@ var App = React.createClass({
         switch (cell.type) {
           case 'treasure':
             player.health += cell.health;
+            player.health = (player.health < 100)
+              ? player.health
+              : 100;
             player = movePlayer(newX, newY);
             break;
           case 'monster':
@@ -164,8 +177,8 @@ var App = React.createClass({
             }
             break;
           case 'ladder':
-              dungeon = this.initializeDungeon();
-              break;
+            dungeon = this.initializeDungeon();
+            break;
           default:
             // do nothing. Assuming a wall or other objet I haven't dealt with yet.
             break;
@@ -173,7 +186,7 @@ var App = React.createClass({
 
       }
 
-      this.setState({dungeon: dungeon, player: player});
+      this.setState({dungeon: dungeon, dungeonWon: dungeonWon, player: player});
     }
   },
 
@@ -337,15 +350,26 @@ var App = React.createClass({
   render: function() {
     let player = this.state.player;
     let dungeon = this.state.dungeon;
+    let dungeonWon = this.state.dungeonWon;
+    let resetStyle = (dungeonWon) ? "primary" : "warning";
+    let continueStatus = (player.alive) ? "false" : "true";
     return (
       <Grid>
         <Row>
           <Col xs={12} md={6}>
-            <Dungeon dungeon={dungeon} player={player}/>
+            <Dungeon dungeon={dungeon} player={player} won={dungeonWon}/>
           </Col>
           <Col xs={12} md={6}>
+            <DungeonInfo dungeonLevel={this.state.dungeonLevel} won={dungeonWon}/>
             <PlayerInfo player={player}/>
-            <DungeonInfo dungeonLevel={this.state.dungeonLevel}/>
+            <Row>
+              <Col xs={12} md={6}>
+                <Button bsStyle={resetStyle} bsSize="large" block>Reset</Button>
+              </Col>
+              <Col xs={12} md={6}>
+                <Button bsStyle="success" bsSize="large" disabled={continueStatus} block>Continue</Button>
+              </Col>
+            </Row>
           </Col>
         </Row>
       </Grid>

@@ -20,15 +20,17 @@ var PlayerInfo = React.createClass({
       attack: 1,
       */
     let player = this.props.player;
+    let dead = <ListGroupItem bsStyle="danger">You have died!</ListGroupItem>;
+    if (player.alive) {
+      dead = '';
+    }
     return (
       <div>
         <ListGroup>
           <ListGroupItem header="Player Info" bsStyle="info"></ListGroupItem>
+          {dead}
           <ListGroupItem>Health
             <Badge>{player.health}</Badge>
-          </ListGroupItem>
-          <ListGroupItem>Armor
-            <Badge>{player.armor}</Badge>
           </ListGroupItem>
           <ListGroupItem>Attack
             <Badge>{player.attackLevel}</Badge>

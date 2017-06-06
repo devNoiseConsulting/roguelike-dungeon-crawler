@@ -27,9 +27,10 @@ var Dungeon = React.createClass({
 
     render: function() {
       let dungeon = this.props.dungeon;
+      let won = this.props.won;
       if (!dungeon) {
         dungeon = [];
-      } else {
+      } else if (!won) {
         dungeon = this.hideDungeonCells(dungeon, this.props.player);
       }
         return (
