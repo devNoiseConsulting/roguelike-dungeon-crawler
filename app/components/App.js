@@ -13,7 +13,7 @@ var App = React.createClass({
   getInitialState: function() {
     return {
       dungeonSize: 41,
-      dungeonLevel: 0,
+      dungeonLevel: 1,
       dungeonWon: false,
       dungeons: [],
       player: {
@@ -171,13 +171,13 @@ var App = React.createClass({
             player = movePlayer(newX, newY);
             break;
           case 'monster':
-            console.log('monster', cell.health);
+            console.log('monster', cell.attackLevel, cell.health);
             if (monsterFight(newX, newY)) {
               player = movePlayer(newX, newY);
             }
             break;
           case 'ladder':
-            dungeon = this.initializeDungeon();
+            dungeon = this.initializeDungeon(false);
             break;
           default:
             // do nothing. Assuming a wall or other objet I haven't dealt with yet.
@@ -190,54 +190,60 @@ var App = React.createClass({
     }
   },
 
-  initializeDungeon: function() {
-    let dungeonLevel = this.state.dungeonLevel + 1;
-    let dungeonSize = this.state.dungeonSize;
+  initializeDungeon: function(reset = true) {
+    let currentState = reset
+      ? this.getInitialState()
+      : this.state;
+    let dungeonSize = currentState.dungeonSize;
+    currentState.dungeonLevel = reset
+      ? currentState.dungeonLevel
+      : currentState.dungeonLevel + 1;
 
     //let dungeon = new Array(dungeonSize).fill(new Array(dungeonSize).fill(' '));
     let dungeon = new Array(dungeonSize).fill(' ');
     dungeon = dungeon.map((row) => {
       return new Array(dungeonSize).fill(' ');
     });
-    console.log("initializeDungeon", dungeonLevel);
+    console.log("initializeDungeon", currentState.dungeonLevel, reset);
 
-    dungeon = this.initializeWalls(dungeon);
-    dungeon = this.initializePlayer(dungeon);
-    dungeon = this.initializeTreasure(dungeon);
-    dungeon = this.initializeMonsters(dungeon);
-    dungeon = this.initializeLadder(dungeon);
+    dungeon = this.initializeWalls(dungeon, currentState);
+    dungeon = this.initializePlayer(dungeon, currentState);
+    dungeon = this.initializeTreasure(dungeon, currentState);
+    dungeon = this.initializeMonsters(dungeon, currentState);
+    dungeon = this.initializeLadder(dungeon, currentState);
 
-    if (dungeonLevel == 4) {
+    if (currentState.dungeonLevel == 4) {
       // add Boss.
       console.log("Shouldn't there be a boss?");
     }
 
-    this.setState({dungeonLevel: dungeonLevel});
+    this.setState({dungeonLevel: currentState.dungeonLevel});
     return dungeon;
   },
 
-  initializePlayer: function(dungeon) {
-    // Once we randomize the dungeon, we may have to keep track of entry points.
-    dungeon[this.state.player.x][this.state.player.y] = this.state.player;
+  initializePlayer: function(dungeon, currentState) {
+    let player = currentState.player;
+    console.log("initializePlayer", player.x, player.y);
+    dungeon[player.x][player.y] = player;
     return dungeon;
   },
 
-  initializeTreasure: function(dungeon) {
+  initializeTreasure: function(dungeon, currentState) {
     let Treasure = function(x, y, level) {
       this.type = 'treasure';
       this.x = x;
       this.y = y;
-      this.health = level * 20;
+      this.health = level * 10;
       this.toString = function() {
         return '+';
       }
     };
 
-    let treasureLimit = Math.sqrt(this.state.dungeonSize);
-    let treasureLevel = this.state.dungeonLevel + 1;
+    let treasureLimit = Math.sqrt(currentState.dungeonSize);
+    let treasureLevel = currentState.dungeonLevel;
     for (let i = 0; i < treasureLimit; i++) {
-      let x = Math.floor(Math.random() * this.state.dungeonSize);
-      let y = Math.floor(Math.random() * this.state.dungeonSize);
+      let x = Math.floor(Math.random() * currentState.dungeonSize);
+      let y = Math.floor(Math.random() * currentState.dungeonSize);
       //console.log("Treasure at ", x, y);
       if (dungeon[x][y] == ' ') {
         dungeon[x][y] = new Treasure(x, y, treasureLevel);
@@ -249,7 +255,7 @@ var App = React.createClass({
     return dungeon;
   },
 
-  initializeMonsters: function(dungeon) {
+  initializeMonsters: function(dungeon, currentState) {
     let Monster = function(x, y, level) {
       this.type = 'monster';
       this.x = x;
@@ -265,21 +271,21 @@ var App = React.createClass({
       }
     };
 
-    let monsterLimit = Math.sqrt(this.state.dungeonSize / 2);
-    let monsterLevel = this.state.dungeonLevel + 1;
+    let monsterLimit = Math.sqrt(currentState.dungeonSize / 2);
+    let monsterLevel = currentState.dungeonLevel;
     for (let i = 0; i < monsterLimit; i++) {
-      let x = Math.floor(Math.random() * this.state.dungeonSize);
-      let y = Math.floor(Math.random() * this.state.dungeonSize);
+      let x = Math.floor(Math.random() * currentState.dungeonSize);
+      let y = Math.floor(Math.random() * currentState.dungeonSize);
       //console.log("Monster at ", x, y);
       if (dungeon[x][y] == ' ') {
         dungeon[x][y] = new Monster(x, y, monsterLevel);
       }
     }
 
-    if (this.state.dungeonLevel == 3) {
+    if (currentState.dungeonLevel == 4) {
       for (let i = 0; i < 1; i++) {
-        let x = Math.floor(Math.random() * this.state.dungeonSize);
-        let y = Math.floor(Math.random() * this.state.dungeonSize);
+        let x = Math.floor(Math.random() * currentState.dungeonSize);
+        let y = Math.floor(Math.random() * currentState.dungeonSize);
         if (dungeon[x][y] == ' ') {
           dungeon[x][y] = new Monster(x, y, 6);
         }
@@ -289,7 +295,7 @@ var App = React.createClass({
     return dungeon;
   },
 
-  initializeLadder: function(dungeon) {
+  initializeLadder: function(dungeon, currentState) {
     let Ladder = function(x, y, level) {
       this.type = 'ladder';
       this.x = x;
@@ -302,10 +308,10 @@ var App = React.createClass({
       }
     };
 
-    if (this.state.dungeonLevel < 3) {
+    if (currentState.dungeonLevel < 4) {
       for (let i = 0; i < 1; i++) {
-        let x = Math.floor(Math.random() * this.state.dungeonSize);
-        let y = Math.floor(Math.random() * this.state.dungeonSize);
+        let x = Math.floor(Math.random() * currentState.dungeonSize);
+        let y = Math.floor(Math.random() * currentState.dungeonSize);
         if (dungeon[x][y] == ' ') {
           dungeon[x][y] = new Ladder(x, y, 1);
         } else {
@@ -317,8 +323,8 @@ var App = React.createClass({
     return dungeon;
   },
 
-  initializeWalls: function(dungeon) {
-    let dungeonSize = this.state.dungeonSize;
+  initializeWalls: function(dungeon, currentState) {
+    let dungeonSize = currentState.dungeonSize;
     let Wall = function(x, y) {
       this.type = 'wall';
       this.x = x;
@@ -347,12 +353,34 @@ var App = React.createClass({
     return dungeon;
   },
 
+  resetGame: function() {
+    console.log("resetGame");
+    let resetState = this.getInitialState();
+    resetState['dungeon'] = this.initializeDungeon();
+    this.setState(resetState);
+  },
+
+  continueGame: function() {
+    console.log("continueGame");
+    let player = this.state.player;
+    player.alive = true;
+    player.health = 100;
+    this.setState({player: player});
+  },
+
   render: function() {
     let player = this.state.player;
     let dungeon = this.state.dungeon;
     let dungeonWon = this.state.dungeonWon;
-    let resetStyle = (dungeonWon) ? "primary" : "warning";
-    let continueStatus = (player.alive) ? "false" : "true";
+    let resetStyle = (dungeonWon)
+      ? "primary"
+      : "warning";
+    let resetText = (dungeonWon)
+      ? "New Game"
+      : "Restart Game";
+    let continueStatus = (player.alive)
+      ? true
+      : false;
     return (
       <Grid>
         <Row>
@@ -364,10 +392,10 @@ var App = React.createClass({
             <PlayerInfo player={player}/>
             <Row>
               <Col xs={12} md={6}>
-                <Button bsStyle={resetStyle} bsSize="large" block>Reset</Button>
+                <Button bsStyle={resetStyle} bsSize="large" block onClick={this.resetGame}>{resetText}</Button>
               </Col>
               <Col xs={12} md={6}>
-                <Button bsStyle="success" bsSize="large" disabled={continueStatus} block>Continue</Button>
+                <Button bsStyle="success" bsSize="large" disabled={continueStatus} block onClick={this.continueGame}>Continue</Button>
               </Col>
             </Row>
           </Col>

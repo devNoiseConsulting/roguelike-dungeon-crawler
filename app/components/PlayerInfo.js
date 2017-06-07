@@ -27,7 +27,12 @@ var PlayerInfo = React.createClass({
     return (
       <div>
         <ListGroup>
-          <ListGroupItem header="Player Info" bsStyle="info"></ListGroupItem>
+          <ListGroupItem header="Player Info" bsStyle="info">
+            Keys: w = <span className="glyphicon glyphicon-arrow-up" aria-label="up"></span>,
+            s = <span className="glyphicon glyphicon-arrow-down" aria-label="down"></span>,
+            a = <span className="glyphicon glyphicon-arrow-left" aria-label="left"></span>,
+            d = <span className="glyphicon glyphicon-arrow-right" aria-label="right"></span>
+          </ListGroupItem>
           {dead}
           <ListGroupItem>Health
             <Badge>{player.health}</Badge>
