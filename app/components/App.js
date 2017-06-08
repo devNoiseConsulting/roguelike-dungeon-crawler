@@ -17,6 +17,7 @@ var App = React.createClass({
       dungeonWon: false,
       dungeons: [],
       player: {
+        type: 'player',
         x: 25,
         y: 25,
         level: 1,
