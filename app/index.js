@@ -1,5 +1,5 @@
 import Bootstrap from 'bootstrap/dist/css/bootstrap.css';
-import './index.css';
+import './index.scss';
 
 var React = require('react');
 var ReactDOM = require('react-dom');

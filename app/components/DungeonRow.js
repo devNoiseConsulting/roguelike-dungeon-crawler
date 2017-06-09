@@ -16,11 +16,14 @@ var DungeonRow = React.createClass({
       let cellId = this.props.rowid + ',' + i;
       if (typeof cell == 'string') {
         return (
-          <span className={'cell, floor' + cell} key={cellId}>{cell}</span>
+          <span className={'cell floor' + cell} key={cellId}></span>
         );
       } else {
+        let cellType = (cell.kind == 'B')
+          ? 'boss'
+          : cell.type;
         return (
-          <span className={'cell, ' + cell.type} key={cellId}>{cell.toString()}</span>
+          <span className={'cell ' + cellType} key={cellId}></span>
         );
       }
     });

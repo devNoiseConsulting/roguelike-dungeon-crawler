@@ -1,0 +1,44 @@
+.dungeon {
+  font-size: 8px;
+  text-align: center;
+}
+$cell-size: 10px;
+
+.cell {
+  width: $cell-size;
+  height: $cell-size;
+  float: left;
+  box-shadow: 0 0 1px 1px grey;
+}
+
+.floor {
+  background: white;
+}
+
+.floorX {
+  background: black;
+}
+
+.player {
+  background: green;
+}
+
+.wall {
+  background: black;
+}
+
+.treasure {
+  background: gold;
+}
+
+.monster {
+  background: orange;
+}
+
+.boss {
+  background: red;
+}
+
+.ladder {
+  background: blue;
+}

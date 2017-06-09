@@ -12,7 +12,7 @@ var Button = require('react-bootstrap').Button;
 var App = React.createClass({
   getInitialState: function() {
     return {
-      dungeonSize: 41,
+      dungeonSize: 51,
       dungeonLevel: 1,
       dungeonWon: false,
       dungeons: [],
@@ -172,7 +172,7 @@ var App = React.createClass({
             player = movePlayer(newX, newY);
             break;
           case 'monster':
-            console.log('monster', cell.attackLevel, cell.health);
+            console.log('monster', cell.kind, cell.attackLevel, cell.health);
             if (monsterFight(newX, newY)) {
               player = movePlayer(newX, newY);
             }
@@ -205,18 +205,12 @@ var App = React.createClass({
     dungeon = dungeon.map((row) => {
       return new Array(dungeonSize).fill(' ');
     });
-    console.log("initializeDungeon", currentState.dungeonLevel, reset);
 
     dungeon = this.initializeWalls(dungeon, currentState);
     dungeon = this.initializePlayer(dungeon, currentState);
     dungeon = this.initializeTreasure(dungeon, currentState);
     dungeon = this.initializeMonsters(dungeon, currentState);
     dungeon = this.initializeLadder(dungeon, currentState);
-
-    if (currentState.dungeonLevel == 4) {
-      // add Boss.
-      console.log("Shouldn't there be a boss?");
-    }
 
     this.setState({dungeonLevel: currentState.dungeonLevel});
     return dungeon;
@@ -257,15 +251,16 @@ var App = React.createClass({
   },
 
   initializeMonsters: function(dungeon, currentState) {
-    let Monster = function(x, y, level) {
+    let Monster = function(x, y, level, boss = false) {
       this.type = 'monster';
       this.x = x;
       this.y = y;
       this.health = (level + 1) * 10;
       this.attackLevel = level + 1;
-      this.kind = 'M';
-      if (level > 4) {
+      if (boss) {
         this.kind = 'B';
+      } else {
+        this.kind = 'M';
       }
       this.toString = function() {
         return this.kind;
@@ -288,7 +283,7 @@ var App = React.createClass({
         let x = Math.floor(Math.random() * currentState.dungeonSize);
         let y = Math.floor(Math.random() * currentState.dungeonSize);
         if (dungeon[x][y] == ' ') {
-          dungeon[x][y] = new Monster(x, y, 6);
+          dungeon[x][y] = new Monster(x, y, this.state.player.level * 2, true);
         }
       }
     }
