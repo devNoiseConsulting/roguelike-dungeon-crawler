@@ -1,8 +1,11 @@
+// Used as a reference: https://css-tricks.com/fun-times-css-pixel-art/
+$cell-size: 10px;
+
 .dungeon {
   font-size: 8px;
-  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
 }
-$cell-size: 10px;
 
 .cell {
   width: $cell-size;
@@ -24,7 +27,7 @@ $cell-size: 10px;
 }
 
 .wall {
-  background: black;
+  background: dimgray;
 }
 
 .treasure {

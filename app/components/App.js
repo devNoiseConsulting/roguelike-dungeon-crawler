@@ -1,15 +1,63 @@
-var React = require('react');
-var Dungeon = require('./Dungeon');
-var PlayerInfo = require('./PlayerInfo');
-var DungeonInfo = require('./DungeonInfo');
+const React = require('react');
+const Dungeon = require('./Dungeon');
+const PlayerInfo = require('./PlayerInfo');
+const DungeonInfo = require('./DungeonInfo');
 
-var Grid = require('react-bootstrap').Grid;
-var Row = require('react-bootstrap').Row;
-var Col = require('react-bootstrap').Col;
+const Grid = require('react-bootstrap').Grid;
+const Row = require('react-bootstrap').Row;
+const Col = require('react-bootstrap').Col;
 
-var Button = require('react-bootstrap').Button;
+const Button = require('react-bootstrap').Button;
 
-var App = React.createClass({
+// Objects for dungeon cell types
+let Ladder = function(x, y, level) {
+  this.type = 'ladder';
+  this.x = x;
+  this.y = y;
+  this.level = level;
+  this.toString = function() {
+    return (level < 0)
+      ? '<'
+      : '>';
+  }
+};
+
+let Monster = function(x, y, level, boss = false) {
+  this.type = 'monster';
+  this.x = x;
+  this.y = y;
+  this.health = (level + 1) * 10;
+  this.attackLevel = level + 1;
+  if (boss) {
+    this.kind = 'B';
+  } else {
+    this.kind = 'M';
+  }
+  this.toString = function() {
+    return this.kind;
+  }
+};
+
+let Treasure = function(x, y, level) {
+  this.type = 'treasure';
+  this.x = x;
+  this.y = y;
+  this.health = level * 10;
+  this.toString = function() {
+    return '+';
+  }
+};
+
+let Wall = function(x, y) {
+  this.type = 'wall';
+  this.x = x;
+  this.y = y;
+  this.toString = function() {
+    return '#';
+  }
+};
+
+const App = React.createClass({
   getInitialState: function() {
     return {
       dungeonSize: 51,
@@ -107,8 +155,8 @@ var App = React.createClass({
       return player;
     };
 
-    let addPlayerExperience = function(player, attackLevel) {
-      player.xp += attackLevel * 5;
+    let addPlayerExperience = function(player, monsterLevel) {
+      player.xp += monsterLevel * 5;
       nextLevel = Math.pow(player.level + 1, 2) * 10;
       if (player.xp >= nextLevel) {
         player.level++;
@@ -129,7 +177,7 @@ var App = React.createClass({
       let monsterDie = false;
       let monster = dungeon[x][y];
       let monsterAttack = attackAmount(monster.attackLevel);
-      let playerAttack = attackAmount(player.attackLevel);
+      let playerAttack = attackAmount(player.level + player.attackLevel);
       monster.health -= playerAttack;
       player.health -= monsterAttack;
       if (monster.health <= 0) {
@@ -207,6 +255,7 @@ var App = React.createClass({
     });
 
     dungeon = this.initializeWalls(dungeon, currentState);
+    dungeon = this.initializeRooms(dungeon, currentState);
     dungeon = this.initializePlayer(dungeon, currentState);
     dungeon = this.initializeTreasure(dungeon, currentState);
     dungeon = this.initializeMonsters(dungeon, currentState);
@@ -224,16 +273,6 @@ var App = React.createClass({
   },
 
   initializeTreasure: function(dungeon, currentState) {
-    let Treasure = function(x, y, level) {
-      this.type = 'treasure';
-      this.x = x;
-      this.y = y;
-      this.health = level * 10;
-      this.toString = function() {
-        return '+';
-      }
-    };
-
     let treasureLimit = Math.sqrt(currentState.dungeonSize);
     let treasureLevel = currentState.dungeonLevel;
     for (let i = 0; i < treasureLimit; i++) {
@@ -251,22 +290,6 @@ var App = React.createClass({
   },
 
   initializeMonsters: function(dungeon, currentState) {
-    let Monster = function(x, y, level, boss = false) {
-      this.type = 'monster';
-      this.x = x;
-      this.y = y;
-      this.health = (level + 1) * 10;
-      this.attackLevel = level + 1;
-      if (boss) {
-        this.kind = 'B';
-      } else {
-        this.kind = 'M';
-      }
-      this.toString = function() {
-        return this.kind;
-      }
-    };
-
     let monsterLimit = Math.sqrt(currentState.dungeonSize / 2);
     let monsterLevel = currentState.dungeonLevel;
     for (let i = 0; i < monsterLimit; i++) {
@@ -292,18 +315,6 @@ var App = React.createClass({
   },
 
   initializeLadder: function(dungeon, currentState) {
-    let Ladder = function(x, y, level) {
-      this.type = 'ladder';
-      this.x = x;
-      this.y = y;
-      this.level = level;
-      this.toString = function() {
-        return (level < 0)
-          ? '<'
-          : '>';
-      }
-    };
-
     if (currentState.dungeonLevel < 4) {
       for (let i = 0; i < 1; i++) {
         let x = Math.floor(Math.random() * currentState.dungeonSize);
@@ -321,29 +332,84 @@ var App = React.createClass({
 
   initializeWalls: function(dungeon, currentState) {
     let dungeonSize = currentState.dungeonSize;
-    let Wall = function(x, y) {
-      this.type = 'wall';
-      this.x = x;
-      this.y = y;
-      this.toString = function() {
-        return '#';
-      }
-    };
 
-    for (let i = 0; i < dungeonSize; i += 10) {
+    for (let i = 0; i < dungeonSize; i++) {
       for (let j = 0; j < dungeonSize; j++) {
-        //console.log(i, j);
-        dungeon[j][i] = new Wall(i, j);
         dungeon[i][j] = new Wall(i, j);
       }
     }
 
-    for (let i = 10; i < (dungeonSize - 5); i += 10) {
-      for (let j = 5; j < (dungeonSize - 5); j += 10) {
-        //console.log(i, j);
-        dungeon[j][i] = ' ';
+    let roomStart = Math.floor(dungeonSize / 2) - 6;
+    let roomEnd = Math.ceil(dungeonSize / 2) + 6;
+    for (let i = roomStart; i < roomEnd; i++) {
+      for (let j = roomStart; j < roomEnd; j++) {
         dungeon[i][j] = ' ';
       }
+    }
+
+    return dungeon;
+  },
+
+  initializeRooms: function(dungeon, currentState) {
+    let dungeonSize = currentState.dungeonSize;
+    let dungeonCenter = Math.ceil(dungeonSize / 2);
+
+    let getDirection = function(oldDirection) {
+      let direction = oldDirection;
+      while (direction == oldDirection) {
+        direction = Math.floor(Math.random() * 4) + 1;
+      }
+      return direction;
+    }
+
+    let addRoom = function(dungeon, x, y, width, height, direction) {
+      let xDirection = 1;
+      let yDirection = 1;
+      switch (direction) {
+        case 3:
+          xDirection = -1;
+          yDirection = 1;
+          break;
+        case 4:
+          xDirection = 1;
+          yDirection = -1;
+          break;
+      }
+      let endX = x + (xDirection * width);
+      let endY = y + (yDirection * height);
+      if (x > endX) {
+        let oldX = x;
+        x = endX;
+        endX = oldX;
+      }
+      if (y > endY) {
+        let oldY = y;
+        y = endY;
+        endY = oldY;
+      }
+      for (let i = x; i < endX; i++) {
+        for (let j = y; j < endY; j++) {
+          dungeon[i][j] = ' ';
+        }
+      }
+      return dungeon;
+    };
+
+    let width = 12;
+    let height = 12;
+    let direction = 1;
+    let x = dungeonCenter - Math.floor(width / 2);
+    let y = dungeonCenter - Math.floor(height / 2);
+
+    for (let i = 0; i < 10; i++) {
+      dungeon = addRoom(dungeon, x, y, width, height, direction);
+      direction = getDirection(direction);
+
+      if ((i % 2) === 0) {
+        width -= 2;
+        height -= 2;
+      }
+      console.log("addRooms", width, height);
     }
 
     return dungeon;
