@@ -2,10 +2,11 @@ const Wall = require('./Wall');
 const Ladder = require('./Ladder');
 const Monster = require('./Monster');
 const Treasure = require('./Treasure');
+const Room = require('./Room');
 
 class DungeonFactory {
   makeDungeon(currentState) {
-    let dungeon = this.initializeWalls(currentState);
+    let dungeon = this.initializeFloors(currentState);
     dungeon = this.initializeRooms(dungeon, currentState);
     dungeon = this.initializePlayer(dungeon, currentState);
     dungeon = this.initializeTreasure(dungeon, currentState);
@@ -87,7 +88,23 @@ class DungeonFactory {
     return dungeon;
   }
 
-  initializeWalls(currentState) {
+  verticalWall(dungeon, x, y, height) {
+    for (let i = x; i < (x + height); i++) {
+      dungeon[i][y] = new Wall(i, y);
+    }
+
+    return dungeon;
+  }
+
+  horizontalWall(dungeon, x, y, width) {
+    for (let i = y; i < (y + width); i++) {
+      dungeon[x][i] = new Wall(i, y);
+    }
+
+    return dungeon;
+  }
+
+  initializeFloors(currentState) {
     let dungeonSize = currentState.dungeonSize;
 
     let dungeon = new Array(dungeonSize).fill(' ');
@@ -95,64 +112,34 @@ class DungeonFactory {
       return new Array(dungeonSize).fill(' ');
     });
 
-    for (let i = 0; i < dungeonSize; i++) {
-      for (let j = 0; j < dungeonSize; j++) {
-        dungeon[i][j] = new Wall(i, j);
-      }
-    }
-
     return dungeon;
   }
 
   initializeRooms(dungeon, currentState) {
-    let dungeonSize = currentState.dungeonSize;
-    let dungeonCenter = Math.ceil(dungeonSize / 2);
+    // There are only 50 elements in the array so for creating rooms, the dungeon size is -1;
+    let dungeonSize = currentState.dungeonSize - 1;
+    dungeon[dungeonSize][dungeonSize] = new Wall(dungeonSize, dungeonSize);
 
-    let width = 20;
-    let height = 20;
-    let direction = 1;
-    let x = dungeonCenter - Math.floor(width / 2);
-    let y = dungeonCenter - Math.floor(height / 2);
+    let dungeonRoom = new Room(0, 0, dungeonSize, dungeonSize);
+    dungeonRoom.split();
+    let dungeonRooms = dungeonRoom.traverse();
 
-    dungeon = this._addRoom(dungeon, x, y, width, height, direction);
+    // Make the Walls
+    dungeonRooms.forEach(room => {
+      //console.log(room);
+      //console.log(dungeon[room.x]);
+      dungeon = this.verticalWall(dungeon, room.x, room.y, room.width);
+      dungeon = this.verticalWall(dungeon, room.x, (room.y + room.height), room.width);
+      dungeon = this.horizontalWall(dungeon, room.x, room.y, room.height);
+      dungeon = this.horizontalWall(dungeon, (room.x + room.width), room.y, room.height);
 
-    return dungeon;
-  }
-
-  _addRoom(dungeon, x, y, width, height, direction) {
-    let xDirection = 1;
-    let yDirection = 1;
-
-    switch (direction) {
-      case 3:
-        xDirection = -1;
-        yDirection = 1;
-        break;
-      case 4:
-        xDirection = 1;
-        yDirection = -1;
-        break;
-    }
-
-    let endX = x + (xDirection * width);
-    let endY = y + (yDirection * height);
-
-    if (x > endX) {
-      let oldX = x;
-      x = endX;
-      endX = oldX;
-    }
-    if (y > endY) {
-      let oldY = y;
-      y = endY;
-      endY = oldY;
-    }
-
-    for (let i = x; i < endX; i++) {
-      for (let j = y; j < endY; j++) {
-        dungeon[i][j] = ' ';
+    });
+    // Make the doors
+    dungeonRooms.forEach(room => {
+      if (room.door.x !== null) {
+        dungeon[room.door.x][room.door.y] = ' ';
       }
-    }
+    });
 
     return dungeon;
   }
