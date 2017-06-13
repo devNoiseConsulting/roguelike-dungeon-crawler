@@ -1,6 +1,6 @@
 {
   "name": "roguelike-dungeon-crawler",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "An implementation of freeCodeCamp's Roguelike Dungeon Crawler Game",
   "main": "index.js",
   "dependencies": {
