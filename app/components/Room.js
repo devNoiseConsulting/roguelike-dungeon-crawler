@@ -27,17 +27,19 @@ class Room {
         let rightWidth;
         let rightHeight;
         let splitSize;
+        let doorPosition = Math.floor(Math.random() * 10) % 2;
 
         // The split should always be bigger than the minSize.
         // The split should be between 1/4 and 3/4 of the original size.
         if (this.width > this.height) {
           splitSize = Math.floor((this.width / 4) + (Math.random() * this.width / 2));
+          splitSize = (splitSize < this.minSize) ? this.minSize : splitSize;
 
           rightX = this.x + splitSize;
           rightY = this.y;
 
           doorX = rightX;
-          doorY = rightY + 3;
+          doorY = rightY + Math.floor(this.minSize / 2) + (doorPosition * (this.height - this.minSize));
 
           leftWidth = splitSize;
           leftHeight = this.height;
@@ -46,11 +48,12 @@ class Room {
           rightHeight = this.height;
         } else {
           splitSize = Math.floor((this.height / 4) + (Math.random() * this.height / 2));
+          splitSize = (splitSize < this.minSize) ? this.minSize : splitSize;
 
           rightX = this.x;
           rightY = this.y + splitSize;
 
-          doorX = rightX + 3;
+          doorX = rightX + Math.floor(this.minSize / 2) + (doorPosition * (this.width - this.minSize));
           doorY = rightY;
 
           leftWidth = this.width;
