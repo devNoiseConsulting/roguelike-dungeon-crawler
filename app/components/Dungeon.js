@@ -1,13 +1,11 @@
 var React = require('react');
 var DungeonRow = require('./DungeonRow');
 
-var Dungeon = React.createClass({
-  getInitialState: function() {
-    return {};
-  },
-  componentDidMount: function() {},
+class Dungeon extends React.Component {
+  //state = {};
+  componentDidMount() {}
 
-  hideDungeonCells: function(dungeon, player) {
+  hideDungeonCells(dungeon, player) {
     dungeon = dungeon.map((row, x) => {
       return row.map((cell, y) => {
         let diffX = Math.abs(player.x - x);
@@ -22,9 +20,9 @@ var Dungeon = React.createClass({
     });
 
     return dungeon;
-  },
+  };
 
-  render: function() {
+  render() {
     let dungeon = this.props.dungeon;
     let won = this.props.won;
     if (!dungeon) {
@@ -42,7 +40,6 @@ var Dungeon = React.createClass({
       </div>
     )
   }
-
-});
+}
 
 module.exports = Dungeon;

@@ -1,13 +1,11 @@
 var React = require('react');
 var DungeonCell = require('./DungeonCell');
 
-var DungeonRow = React.createClass({
-  getInitialState: function() {
-    return {};
-  },
-  componentDidMount: function() {},
+class DungeonRow extends React.Component {
+  //state = {};
+  componentDidMount() {}
 
-  render: function() {
+  render() {
     let row = this.props.row;
     if (!row) {
       row = [];
@@ -33,7 +31,6 @@ var DungeonRow = React.createClass({
       </span>
     );
   }
-
-});
+}
 
 module.exports = DungeonRow;

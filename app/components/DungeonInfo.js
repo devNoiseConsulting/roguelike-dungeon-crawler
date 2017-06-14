@@ -3,15 +3,14 @@ var ListGroup = require('react-bootstrap').ListGroup;
 var ListGroupItem = require('react-bootstrap').ListGroupItem;
 var Badge = require('react-bootstrap').Badge;
 
-var DungeonInfo = React.createClass({
-  getInitialState: function() {
-    return {};
-  },
-  componentDidMount: function() {
-    //console.log(this.props.cell);
-  },
+class DungeonInfo extends React.Component {
+  //state = {};
 
-  render: function() {
+  componentDidMount() {
+    //console.log(this.props.cell);
+  }
+
+  render() {
     /*
       level: 1,
       xp: 0,
@@ -36,7 +35,6 @@ var DungeonInfo = React.createClass({
       </div>
     );
   }
-
-});
+}
 
 module.exports = DungeonInfo;

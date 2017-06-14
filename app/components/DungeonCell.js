@@ -1,15 +1,13 @@
 var React = require('react');
 
-var DungeonCell = React.createClass({
-  getInitialState: function() {
-    return {};
-  },
-  componentDidMount: function() {
+class DungeonCell extends React.Component {
+  //state = {};
+
+  componentDidMount() {
     //console.log(this.props.cell);
+  }
 
-  },
-
-  render: function() {
+  render() {
     let cell = this.props.cell;
     if (!cell) {
       cell = '.';
@@ -18,7 +16,6 @@ var DungeonCell = React.createClass({
       <span>{cell}</span>
     )
   }
-
-});
+}
 
 module.exports = DungeonCell;
