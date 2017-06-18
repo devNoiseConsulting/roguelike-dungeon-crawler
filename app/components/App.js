@@ -1,6 +1,9 @@
 const React = require('react');
 
+const PropTypes = require('prop-types');
+
 const DungeonFactory = require('./DungeonFactory');
+const Player = require('./Player');
 
 const Dungeon = require('./Dungeon');
 const PlayerInfo = require('./PlayerInfo');
@@ -12,40 +15,25 @@ const Col = require('react-bootstrap').Col;
 
 const Button = require('react-bootstrap').Button;
 
-const App = React.createClass({
-  getInitialState: function() {
-    return {
-      dungeonSize: 51,
-      dungeonLevel: 1,
-      dungeonWon: false,
-      dungeons: [],
-      player: {
-        type: 'player',
-        x: 25,
-        y: 25,
-        level: 1,
-        xp: 0,
-        alive: true,
-        health: 100,
-        armor: 0,
-        attackLevel: 1,
-        toString: function() {
-          return (this.alive)
-            ? 'P'
-            : 'd';
-        }
-      }
-    };
-  },
+class App extends React.Component {
+  /*
+  state = {
+    dungeonSize: 51,
+    dungeonLevel: 1,
+    dungeonWon: false,
+    dungeons: [],
+    player: new Player(25, 25);
+  }
+  */
 
-  componentDidMount: function() {
+  componentDidMount() {
     let currentState = this.initializeDungeon(this.state);
     this.setState(currentState);
 
     window.addEventListener('keydown', this.handleKeypress);
-  },
+  }
 
-  handleKeypress: function(e) {
+  handleKeypress(e) {
     let dungeonFactory = new DungeonFactory();
 
     let keys = {
@@ -132,9 +120,9 @@ const App = React.createClass({
 
       this.setState(currentState);
     }
-  },
+  }
 
-  initializeDungeon: function(currentState, reset = true) {
+  initializeDungeon(currentState, reset = true) {
     currentState = reset
       ? this.getInitialState()
       : currentState;
@@ -147,24 +135,24 @@ const App = React.createClass({
     currentState.dungeon = dungeon;
 
     return currentState;
-  },
+  }
 
-  resetGame: function() {
+  resetGame() {
     console.log("resetGame");
     let resetState = this.getInitialState();
     resetState = this.initializeDungeon(resetState);
     this.setState(resetState);
-  },
+  }
 
-  continueGame: function() {
+  continueGame() {
     console.log("continueGame");
     let player = this.state.player;
     player.alive = true;
     player.health = 100;
     this.setState({player: player});
-  },
+  }
 
-  render: function() {
+  render() {
     let player = this.state.player;
     let dungeon = this.state.dungeon;
     let dungeonWon = this.state.dungeonWon;
@@ -200,6 +188,6 @@ const App = React.createClass({
     );
   }
 
-});
+}
 
 module.exports = App;
