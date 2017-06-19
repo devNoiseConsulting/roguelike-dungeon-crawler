@@ -16,21 +16,32 @@ const Col = require('react-bootstrap').Col;
 const Button = require('react-bootstrap').Button;
 
 class App extends React.Component {
-  /*
-  state = {
-    dungeonSize: 51,
-    dungeonLevel: 1,
-    dungeonWon: false,
-    dungeons: [],
-    player: new Player(25, 25);
+  constructor(props) {
+    // Pass `props` into scope.
+    super(props)
+
+    // Get default state.
+    this.getInitialState()
   }
-  */
+
+  // Set default state.
+  getInitialState() {
+    this.state = {
+      dungeonSize: 51,
+      dungeonLevel: 1,
+      dungeonWon: false,
+      dungeons: [],
+      player: new Player(25, 25)
+    };
+
+    return this.state;
+  }
 
   componentDidMount() {
     let currentState = this.initializeDungeon(this.state);
     this.setState(currentState);
 
-    window.addEventListener('keydown', this.handleKeypress);
+    window.addEventListener('keydown', this.handleKeypress.bind(this));
   }
 
   handleKeypress(e) {
